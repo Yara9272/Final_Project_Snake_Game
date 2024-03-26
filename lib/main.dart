@@ -28,33 +28,52 @@ class MySnakeGame extends StatefulWidget {
 }
 
 class _MySnakeGameState extends State<MySnakeGame> {
-  List<int> snakePosition = [24,25,26];     //intial snake position
-  int foodLocation = Random().nextInt(750); //initial food location, chosen randomly
+  List<int> snakePosition = [300, 301, 302]; //intial snake position
+  int foodLocation = Random().nextInt(3000); //initial food location, chosen randomly
 
   @override
   Widget build(BuildContext context) {
+    // Calculate the number of squares needed in each dimension
+    final double screenWidth = MediaQuery
+        .of(context)
+        .size
+        .width;
+    final double screenHeight = MediaQuery
+        .of(context)
+        .size
+        .height;
+    final int crossAxisCount = (screenWidth / 12).ceil();
+    final int rowCount = (screenHeight / 12).ceil();
+    final int itemCount = crossAxisCount * rowCount;
+
     return Scaffold(
       body: SafeArea(
-        child: GridView.builder(
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: 760,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 20),
-          itemBuilder: (context, index) {
-            if (snakePosition.contains(index)) {
+        child: Container(
+          color: Colors.grey[900], // Background color of the container
+          child: GridView.builder(
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: itemCount,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: crossAxisCount,
+              childAspectRatio: screenWidth / crossAxisCount / screenHeight *
+                  rowCount,
+            ),
+            itemBuilder: (context, index) {
+              if (snakePosition.contains(index)) {
+                return Container(
+                  color: Colors.green,
+                );
+              }
+              if (index == foodLocation) {
+                return Container(
+                  color: Colors.red,
+                );
+              }
               return Container(
-                color: Colors.green,
+                color: Colors.grey[900],
               );
-            }
-            if (index == foodLocation) {
-              return Container(
-                color: Colors.red,
-              );
-            }
-            return Container(
-              color: Colors.grey[900],
-            );
-          },
+            },
+          ),
         ),
       ),
     );
