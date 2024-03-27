@@ -271,7 +271,14 @@ class _MySnakeGameState extends State<MySnakeGame> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Game Over'),
-          content: const Text('You collided with yourself!'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Text('You collided with yourself!'),
+              SizedBox(height: 10),
+              Text('Your Score: $score'),
+            ],
+          ),
           actions: <Widget>[
             TextButton(
               onPressed: () {
