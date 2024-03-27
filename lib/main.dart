@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
+import 'dart:async';
+
 
 void main() {
   runApp(const SnakeGame());
@@ -29,12 +31,33 @@ class MySnakeGame extends StatefulWidget {
 
 
 enum Direction { up, down, left, right }
+// Create a class to hold the calculated values
+class GameConfig {
+  static int crossAxisCount=1;
+  static int rowCount=1;
+}
+
 
 class _MySnakeGameState extends State<MySnakeGame> {
   List<int> snakePosition = [300, 301, 302]; //intial snake position
-  int foodLocation = Random().nextInt(3000); //initial food location, chosen randomly
+  int foodLocation = Random().nextInt(GameConfig.crossAxisCount*GameConfig.rowCount); //initial food location, chosen randomly
 
   Direction direction = Direction.right;
+
+
+
+
+  @override
+  void initState(){
+    Timer.periodic(Duration(milliseconds: 300),
+        onGameTick);
+  }
+
+
+  void onGameTick(Timer timer) {
+    //updateSnake(); //handle the direction of the snake based on the current direction
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -47,9 +70,9 @@ class _MySnakeGameState extends State<MySnakeGame> {
         .of(context)
         .size
         .height;
-    final int crossAxisCount = (screenWidth / 12).ceil();
-    final int rowCount = (screenHeight / 12).ceil();
-    final int itemCount = crossAxisCount * rowCount;
+    GameConfig.crossAxisCount = (screenWidth / 12).ceil();
+    GameConfig.rowCount = (screenHeight / 12).ceil();
+    final int itemCount = GameConfig.crossAxisCount * GameConfig.rowCount;
 
     // Determine the indices of the tip and tail of the snake
     int tipIndex = snakePosition.last;
@@ -80,9 +103,9 @@ class _MySnakeGameState extends State<MySnakeGame> {
               physics: const NeverScrollableScrollPhysics(),
               itemCount: itemCount,
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: crossAxisCount,
-                childAspectRatio: screenWidth / crossAxisCount / screenHeight *
-                    rowCount,
+                crossAxisCount: GameConfig.crossAxisCount,
+                childAspectRatio: screenWidth / GameConfig.crossAxisCount / screenHeight *
+                    GameConfig.rowCount,
               ),
               itemBuilder: (context, index) {
                 if (snakePosition.contains(index)) {
@@ -135,4 +158,7 @@ class _MySnakeGameState extends State<MySnakeGame> {
       ),
     );
   }
+
+
+
 }
