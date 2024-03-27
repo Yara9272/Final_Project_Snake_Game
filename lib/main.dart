@@ -49,6 +49,8 @@ class GameConfig {
 
 
 class _MySnakeGameState extends State<MySnakeGame> {
+  // Define a variable to hold the game timer
+  late Timer _gameTimer;
   List<int> snakePosition = [300, 301, 302]; // Initial position of the snake
   int foodLocation = Random().nextInt(GameConfig.crossAxisCount * GameConfig.rowCount); // Initial food location, chosen randomly
   Direction direction = Direction.right; // Initial direction of the snake
@@ -56,8 +58,9 @@ class _MySnakeGameState extends State<MySnakeGame> {
 
   @override
   void initState() {
-    // Initialize method called when the state object is first created
-    Timer.periodic(Duration(milliseconds: 200), onGameTick); // Start a timer to call onGameTick method periodically
+    // Start the game timer
+    _startGame();
+    super.initState();
   }
 
 
@@ -237,6 +240,53 @@ class _MySnakeGameState extends State<MySnakeGame> {
     }
   }
 
+  void _startGame() {
+    // Start the game timer and define the tick function
+    _gameTimer = Timer.periodic(const Duration(milliseconds: 200), _onGameTick);
+  }
+
+  void _onGameTick(Timer timer) {
+    updateSnake();
+  }
+
+  void _pauseGame() {
+    // Pause the game timer
+    _gameTimer.cancel();
+  }
+
+  void _showGameOverDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Game Over'),
+          content: const Text('You collided with yourself!'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                resetGame();
+                _startGame(); // Restart the game
+              },
+              child: const Text('Restart'),
+            ),
+          ],
+        );
+      },
+    );
+    _pauseGame(); // Pause the game when showing the dialog
+  }
+
+  void resetGame() {
+    setState(() {
+      // Reset snake's position
+      snakePosition = [300, 301, 302];
+      // Generate new random food location
+      foodLocation = Random().nextInt(GameConfig.crossAxisCount * GameConfig.rowCount);
+      // Reset direction to right
+      direction = Direction.right;
+    });
+  }
 
   void updateSnake() {
     setState(() {
@@ -288,6 +338,11 @@ class _MySnakeGameState extends State<MySnakeGame> {
           // Reset direction to right
           direction = Direction.right;
           return; // Exit the function to prevent further processing
+        }
+
+        if (snakePosition.contains(nextCell)) {
+          _showGameOverDialog();
+          return;
         }
 
         // Move the snake's head to the next cell
