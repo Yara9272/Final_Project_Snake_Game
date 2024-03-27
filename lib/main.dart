@@ -54,6 +54,7 @@ class _MySnakeGameState extends State<MySnakeGame> {
   List<int> snakePosition = [300, 301, 302]; // Initial position of the snake
   int foodLocation = Random().nextInt(GameConfig.crossAxisCount * GameConfig.rowCount); // Initial food location, chosen randomly
   Direction direction = Direction.right; // Initial direction of the snake
+  int score=0; //score initialized to zero
 
 
   @override
@@ -85,6 +86,15 @@ class _MySnakeGameState extends State<MySnakeGame> {
 
     return Scaffold(
       body: SafeArea(
+        child: Column(
+          children:[
+          //Display the score
+          Container(
+          height: 50, //Height of the score display
+          alignment: Alignment.center,
+          child: Text('Score: $score', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+        ),
+          Expanded(
         child: GestureDetector(
           // Gesture detector to handle drag events
           onVerticalDragUpdate: (details) {
@@ -170,6 +180,7 @@ class _MySnakeGameState extends State<MySnakeGame> {
           ),
         ),
       ),
+    ],),)
     );
   }
 
@@ -317,6 +328,7 @@ class _MySnakeGameState extends State<MySnakeGame> {
 
         // Generate a new random location for the food
         foodLocation = Random().nextInt(GameConfig.crossAxisCount * GameConfig.rowCount);
+        score++; // Increment score when the snake eats the food
       } else {
         // If the snake doesn't eat the food
         // Remove the tail segment of the snake
