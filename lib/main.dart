@@ -75,7 +75,7 @@ class _MySnakeGameState extends State<MySnakeGame> {
   Widget build(BuildContext context) {
     // Calculate the number of squares needed in each dimension
     final double screenWidth = MediaQuery.of(context).size.width;
-    final double screenHeight = MediaQuery.of(context).size.height;
+    final double screenHeight = MediaQuery.of(context).size.height-50;
     GameConfig.crossAxisCount = (screenWidth / 12).ceil(); // Number of squares in the horizontal direction
     GameConfig.rowCount = (screenHeight / 12).ceil(); // Number of squares in the vertical direction
     final int itemCount = GameConfig.crossAxisCount * GameConfig.rowCount; // Total number of squares on the screen
@@ -303,6 +303,7 @@ class _MySnakeGameState extends State<MySnakeGame> {
       foodLocation = Random().nextInt(GameConfig.crossAxisCount * GameConfig.rowCount);
       // Reset direction to right
       direction = Direction.right;
+      score=0;
     });
   }
 
