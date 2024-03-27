@@ -322,22 +322,19 @@ class _MySnakeGameState extends State<MySnakeGame> {
         // Remove the tail segment of the snake
         snakePosition.removeAt(0);
 
-        // Check for collision with boundaries
-        if (nextCell < 0 ||
-            nextCell >= GameConfig.crossAxisCount * GameConfig.rowCount || // Check for out-of-bounds condition
-            (direction == Direction.left && head % GameConfig.crossAxisCount == 0) || // Check for collision with left wall
-            (direction == Direction.right && (head + 1) % GameConfig.crossAxisCount == 0)) { // Check for collision with right wall
-          // Game over condition, you may handle it accordingly
-          // For now, let's reset the game
-
-          //Reset the game
-          // Reset snake's position
-          snakePosition = [300, 301, 302];
-          // Generate new random food location
-          foodLocation = Random().nextInt(GameConfig.crossAxisCount * GameConfig.rowCount);
-          // Reset direction to right
-          direction = Direction.right;
-          return; // Exit the function to prevent further processing
+        // Check for collision with borders
+        if (nextCell < 0) {
+          // Snake collides with the upper boundary, wrap to the bottom
+          nextCell += GameConfig.crossAxisCount * GameConfig.rowCount;
+        } else if (nextCell >= GameConfig.crossAxisCount * GameConfig.rowCount) {
+          // Snake collides with the lower boundary, wrap to the top
+          nextCell -= GameConfig.crossAxisCount * GameConfig.rowCount;
+        } else if (direction == Direction.left && head % GameConfig.crossAxisCount == 0) {
+          // Snake collides with the left boundary, wrap to the right
+          nextCell += GameConfig.crossAxisCount - 1;
+        } else if (direction == Direction.right && (head + 1) % GameConfig.crossAxisCount == 0) {
+          // Snake collides with the right boundary, wrap to the left
+          nextCell -= GameConfig.crossAxisCount - 1;
         }
 
         if (snakePosition.contains(nextCell)) {
