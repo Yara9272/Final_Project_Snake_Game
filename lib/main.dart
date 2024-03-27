@@ -45,6 +45,14 @@ class GameConfig {
   static int crossAxisCount = 1; // Static variable to hold the count of columns
   static int rowCount = 1; // Static variable to hold the count of rows
 }
+//creating rock types
+enum RockType { yellowGameOver, blueReduceScore, pinkLoseControl  }
+class Rock {
+  int position;
+  RockType type;
+
+  Rock({required this.position, required this.type});
+}
 
 class _MySnakeGameState extends State<MySnakeGame> {
   // Define a variable to hold the game timer
@@ -54,7 +62,8 @@ class _MySnakeGameState extends State<MySnakeGame> {
       GameConfig.rowCount); // Initial food location, chosen randomly
   Direction direction = Direction.right; // Initial direction of the snake
   int score = 0; //score initialized to zero
-
+  bool ignoreSelfCollision = false;
+  List<Rock> rocks = [];
   bool gamePaused = true;
   List<Map<int, DateTime>> leaderboard = [];
 
@@ -64,6 +73,11 @@ class _MySnakeGameState extends State<MySnakeGame> {
     _startGame();
     super.initState();
     _loadLeaderboard();
+    WidgetsBinding.instance!.addPostFrameCallback((_) {
+      // Generate rocks after the layout is built
+      generateRocks();
+
+    });
   }
 
   Future<void> _loadLeaderboard() async {
@@ -108,6 +122,7 @@ class _MySnakeGameState extends State<MySnakeGame> {
   void onGameTick(Timer timer) {
     // Method called on each tick of the timer
     updateSnake(); // Update the position of the snake
+    checkCollisions();
   }
 
   @override
@@ -240,6 +255,31 @@ class _MySnakeGameState extends State<MySnakeGame> {
                             ),
                           );
                         }
+                        if (rocks.any((rock) => rock.position == index)) {
+                          Rock rock = rocks.firstWhere((rock) => rock.position == index);
+                          switch (rock.type) {
+                            case RockType.yellowGameOver:
+                              return Container(
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.rectangle,
+                                  color: Colors.yellow,
+                                ),
+                              );
+                            case RockType.blueReduceScore:
+                              return Container(
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.blue,
+                                ),
+                              );
+                            case RockType.pinkLoseControl:
+                              return Icon(
+                                Icons.access_time_filled_sharp,
+                                color: Colors.pink,
+
+                              );
+                          }
+                        }
                         // Render empty grid cells
                         return Container(
                           decoration: BoxDecoration(
@@ -332,6 +372,7 @@ class _MySnakeGameState extends State<MySnakeGame> {
 
   void _onGameTick(Timer timer) {
     updateSnake();
+    checkCollisions();
   }
 
   void _pauseGame() {
@@ -397,6 +438,98 @@ class _MySnakeGameState extends State<MySnakeGame> {
       score = 0;
     });
   }
+  void generateRocks() {
+    // Generate yellow rocks
+    for (int i = 0; i < 5; i++) {
+      int position = Random().nextInt(GameConfig.crossAxisCount * GameConfig.rowCount);
+      rocks.add(Rock(position: position, type: RockType.yellowGameOver));
+    }
+
+    // Generate blue rocks
+    for (int i = 0; i < 3; i++) {
+      int position = Random().nextInt(GameConfig.crossAxisCount * GameConfig.rowCount);
+      rocks.add(Rock(position: position, type: RockType.blueReduceScore));
+    }
+    // Generate pink rocks
+    for (int i = 0; i < 3; i++) {
+      int position = Random().nextInt(GameConfig.crossAxisCount * GameConfig.rowCount);
+      rocks.add(Rock(position: position, type: RockType.pinkLoseControl));
+    }
+
+  }
+  void checkCollisions() {
+    int head = snakePosition.last;
+
+    // Check collision with rocks
+    for (Rock rock in rocks) {
+      if (rock.position == head) {
+        switch (rock.type) {
+          case RockType.yellowGameOver:
+            _showGameOverDialog();
+            break;
+          case RockType.blueReduceScore:
+            if (score > 0) {
+              setState(() {
+                score--; // Decrease score
+              });
+              if (snakePosition.length > 1) {
+                setState(() {
+                  snakePosition.removeAt(0); // Remove the first segment
+                });
+              }
+            }
+          case RockType.pinkLoseControl:
+            _startLoseControlEffect();
+            break;
+
+        }
+        setState(() {
+          for (Rock rock in rocks) {
+            rock.position = Random().nextInt(GameConfig.crossAxisCount * GameConfig.rowCount);
+          }
+        });
+        if (rock.type == RockType.pinkLoseControl) {
+          ignoreSelfCollision = true;
+        }
+      }
+    }
+  }
+  void _startLoseControlEffect() {
+    Direction originalDirection = direction;
+    int countdown = 10; // Adjust this value as needed
+
+    Timer.periodic(Duration(milliseconds: 200), (timer) {
+      if (countdown > 0) {
+        setState(() {
+          direction = _getRandomDirection(direction);
+          countdown--;
+        });
+      } else {
+        setState(() {
+          direction = originalDirection;
+        });
+        timer.cancel(); // Stop the timer after control is regained
+      }
+    });
+  }
+
+  Direction _getRandomDirection(Direction currentDirection) {
+    Random random = Random();
+    // Generate a random number between 0 and 3
+    int randomNumber = random.nextInt(4);
+    switch (randomNumber) {
+      case 0:
+        return currentDirection != Direction.down ? Direction.up : _getRandomDirection(currentDirection);
+      case 1:
+        return currentDirection != Direction.up ? Direction.down : _getRandomDirection(currentDirection);
+      case 2:
+        return currentDirection != Direction.right ? Direction.left : _getRandomDirection(currentDirection);
+      case 3:
+        return currentDirection != Direction.left ? Direction.right : _getRandomDirection(currentDirection);
+      default:
+        return currentDirection;
+    }
+  }
 
   void updateSnake() {
     setState(() {
@@ -451,11 +584,12 @@ class _MySnakeGameState extends State<MySnakeGame> {
           // Snake collides with the right boundary, wrap to the left
           nextCell -= GameConfig.crossAxisCount - 1;
         }
-
-        if (snakePosition.contains(nextCell)) {
-          _addToLeaderboard(score);
-          _showGameOverDialog();
-          return;
+        if (!ignoreSelfCollision) {
+          if (snakePosition.contains(nextCell)) {
+            _addToLeaderboard(score);
+            _showGameOverDialog();
+            return;
+          }
         }
 
         // Move the snake's head to the next cell
