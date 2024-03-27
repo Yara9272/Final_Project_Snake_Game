@@ -49,13 +49,13 @@ class _MySnakeGameState extends State<MySnakeGame> {
 
   @override
   void initState(){
-    Timer.periodic(Duration(milliseconds: 300),
+    Timer.periodic(Duration(milliseconds: 200),
         onGameTick);
   }
 
 
   void onGameTick(Timer timer) {
-    //updateSnake(); //handle the direction of the snake based on the current direction
+    updateSnake(); //handle the direction of the snake based on the current direction
   }
 
 
@@ -73,6 +73,9 @@ class _MySnakeGameState extends State<MySnakeGame> {
     GameConfig.crossAxisCount = (screenWidth / 12).ceil();
     GameConfig.rowCount = (screenHeight / 12).ceil();
     final int itemCount = GameConfig.crossAxisCount * GameConfig.rowCount;
+
+    print( GameConfig.crossAxisCount);
+    print(GameConfig.rowCount);
 
     // Determine the indices of the tip and tail of the snake
     int tipIndex = snakePosition.last;
@@ -160,5 +163,56 @@ class _MySnakeGameState extends State<MySnakeGame> {
   }
 
 
+  void updateSnake() {
+    setState(() {
+      // Determine the current position of the snake's head
+      int head = snakePosition.last;
+      int nextCell = 0;
 
+      // Calculate the next position based on the direction
+      switch (direction) {
+        case Direction.up:
+          nextCell = head - GameConfig.crossAxisCount;
+          break;
+        case Direction.down:
+          nextCell = head + GameConfig.crossAxisCount;
+          break;
+        case Direction.left:
+          nextCell = head - 1;
+          break;
+        case Direction.right:
+          nextCell = head + 1;
+          break;
+      }
+
+      // Check for collision with food
+      if (nextCell == foodLocation) {
+        // If the snake eats the food, add a new segment to the snake
+        snakePosition.add(nextCell);
+
+        // Generate a new random location for the food
+        foodLocation = Random().nextInt(GameConfig.crossAxisCount * GameConfig.rowCount);
+      } else {
+        // Remove the tail segment of the snake
+        snakePosition.removeAt(0);
+
+        // Check for collision with boundaries
+        if (nextCell < 0 ||
+            nextCell >= GameConfig.crossAxisCount*GameConfig.rowCount || // Assuming a 100x30 grid
+            (direction == Direction.left && head % GameConfig.crossAxisCount == 0) || // Hit left wall
+            (direction == Direction.right && (head + 1) % GameConfig.crossAxisCount == 0)) {
+          // Hit right wall
+          // Game over condition, you may handle it accordingly
+          // For now, let's reset the game
+          snakePosition = [300, 301, 302];
+          foodLocation = Random().nextInt(GameConfig.crossAxisCount * GameConfig.rowCount);
+          direction = Direction.right; // Reset direction
+          return;
+        }
+
+        // Move the snake's head to the next cell
+        snakePosition.add(nextCell);
+      }
+    });
+  }
 }
