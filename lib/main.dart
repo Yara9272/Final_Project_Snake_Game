@@ -46,6 +46,10 @@ class _MySnakeGameState extends State<MySnakeGame> {
     final int rowCount = (screenHeight / 12).ceil();
     final int itemCount = crossAxisCount * rowCount;
 
+    // Determine the indices of the tip and tail of the snake
+    int tipIndex = snakePosition.last;
+    int tailIndex = snakePosition.first;
+
     return Scaffold(
       body: SafeArea(
         child: Container(
@@ -60,18 +64,48 @@ class _MySnakeGameState extends State<MySnakeGame> {
             ),
             itemBuilder: (context, index) {
               if (snakePosition.contains(index)) {
-                return Container(
-                  color: Colors.green,
-                );
+                // Check if the current index is the tip or tail of the snake
+                if (index == tipIndex){
+                  return Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.only(
+                        topRight: Radius.circular(9.0), // Round only top right corner
+                        bottomRight: Radius.circular(9.0), // Round only bottom right corner
+                      ),
+                      color: Colors.green[900],
+                    ),
+                  );
+                } else if (index == tailIndex){
+                  return Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(9.0), // Round only top right corner
+                        bottomLeft: Radius.circular(9.0), // Round only bottom right corner
+                      ),
+                      color: Colors.green,
+                    ),
+                  );
+                }else{
+                  return Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.rectangle,
+                      color: Colors.green,
+                    ),
+                  );
+                }
               }
               if (index == foodLocation) {
                 return Container(
-                  color: Colors.red,
-                );
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.red,
+                  ),                );
               }
               return Container(
-                color: Colors.grey[900],
-              );
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.grey[900],
+                ),              );
             },
           ),
         ),
